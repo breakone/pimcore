@@ -40,12 +40,20 @@ class Dao extends Model\Dao\AbstractDao
 
     /**
      * @param string $key
+     * @param ?array $languages
      *
      * @throws NotFoundResourceException
      */
-    public function getByKey($key)
+    public function getByKey($key, $languages = null)
     {
-        $data = $this->db->fetchAll('SELECT * FROM ' . $this->getDatabaseTableName() . ' WHERE `key` = ? ORDER BY `creationDate` ', [$key]);
+        if (is_array($languages)) {
+            $sql = 'SELECT * FROM ' . $this->getDatabaseTableName() . ' WHERE `key` = ?
+            AND `language` IN (' . implode(',' , array_map([$this->db, 'quote'], $languages)) . ') ORDER BY `creationDate` ';
+        } else {
+            $sql ='SELECT * FROM ' . $this->getDatabaseTableName() . ' WHERE `key` = ? ORDER BY `creationDate` ';
+        }
+
+        $data = $this->db->fetchAll($sql, [$key]);
 
         if (!empty($data)) {
             foreach ($data as $d) {
